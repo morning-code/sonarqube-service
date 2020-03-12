@@ -1,12 +1,8 @@
+version: 2.1
 orbs:
   gradle: circleci/gradle@2.0.1
-  aws-ecr: circleci/aws-ecr@0.0.2
-version: 2.1
+  aws-ecr: circleci/aws-ecr@6.0.0
 workflows:
-  checkout-build-test:
-    jobs:
-      - gradle/test
-
   build-and-deploy:
     jobs:
       - aws-ecr/build_and_push_image:
