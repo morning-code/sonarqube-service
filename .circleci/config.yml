@@ -1,13 +1,16 @@
 version: 2.1
 
 orbs:
-  aws-ecr: circleci/aws-ecr@6.0.0
+  aws-ecr: circleci/aws-ecr@6.7.1
 
 workflows:
   build_and_push_image:
     jobs:
-      - aws-ecr/build_and_push_image:
+      - aws-ecr/build-and-push-image:
           account-url: "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+          aws-access-key-id: ACCESS_KEY_ID
+          aws-secret-access-key: SECRET_ACCESS_KEY
+          create-repo: true
           repo: "${AWS_RESOURCE_NAME_PREFIX}"
           region: ${AWS_DEFAULT_REGION}
           tag: "latest"
