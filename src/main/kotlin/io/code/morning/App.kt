@@ -14,7 +14,8 @@ fun main() {
       StackProps.builder()
           .env(
               Environment.builder()
-                  .region("ap-northeast-1")
+                  .account(System.getenv("CDK_DEFAULT_ACCOUNT"))
+                  .region(System.getenv("CDK_DEFAULT_REGION"))
                   .build()
           )
           .build()

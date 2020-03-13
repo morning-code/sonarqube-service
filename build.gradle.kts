@@ -34,6 +34,8 @@ dependencies {
     implementation("software.amazon.awscdk:ecs-patterns:1.15.0.DEVPREVIEW")
     implementation("software.amazon.awscdk:ecr:1.15.0.DEVPREVIEW")
     implementation("software.amazon.awscdk:ec2:1.15.0.DEVPREVIEW")
+    implementation("software.amazon.awscdk:rds:1.15.0.DEVPREVIEW")
+    implementation("software.amazon.awscdk:ssm:1.15.0.DEVPREVIEW")
     // Testing
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
