@@ -33,6 +33,7 @@ class SonarQubeStack @JvmOverloads constructor(app: App, id: String, props: Stac
     val databasePassword: String = StringParameter.valueFromLookup(this, "SONAR_JDBC_PASSWORD")
     val rds = DatabaseInstance(this, "sonar-db", DatabaseInstanceProps.builder()
         .instanceIdentifier("sonar-db")
+        .timezone("Asia/Tokyo")
         .masterUsername("sonar")
         .masterUserPassword(SecretValue(databasePassword))
         .engine(DatabaseInstanceEngine.POSTGRES)
