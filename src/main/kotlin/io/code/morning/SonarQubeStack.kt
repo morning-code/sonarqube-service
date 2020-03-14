@@ -33,7 +33,7 @@ class SonarQubeStack @JvmOverloads constructor(app: App, id: String, props: Stac
     val databasePassword: String = StringParameter.valueFromLookup(this, "SONAR_JDBC_PASSWORD")
     val rds = DatabaseInstance(this, "sonar-db", DatabaseInstanceProps.builder()
         .instanceIdentifier("sonar-db")
-        .timezone("Asia/Tokyo")
+        //.timezone("Asia/Tokyo")
         .masterUsername("sonar")
         .masterUserPassword(SecretValue(databasePassword))
         .engine(DatabaseInstanceEngine.POSTGRES)
@@ -59,29 +59,31 @@ class SonarQubeStack @JvmOverloads constructor(app: App, id: String, props: Stac
         this, "morning-code-sonar-cluster", ClusterProps.builder()
         .clusterName("morning-code-sonar-cluster")
         .vpc(vpc)
-        .capacity(AddCapacityOptions.builder()
-            .instanceType(InstanceType.of(InstanceClass.BURSTABLE3, InstanceSize.MICRO))
-            .desiredCapacity(1)
-            .maxCapacity(1)
-            .minCapacity(1)
-            .build()
-        )
         .build()
     )
 
     // MEMO: for ElasticSearch error settings.
     // [2]: max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]
+    val userData = UserData.forLinux()
+    userData.addCommands(
+        "echo 'Adding User Commands...'",
+        "echo vm.max_map_count=262144 >> /etc/sysctl.conf",
+        "sysctl -w vm.max_map_count=262144"
+    )
+
+    // EC2 - AutoScalingGroup
     val asg = AutoScalingGroup(this, "auto-scaling-g", AutoScalingGroupProps.builder()
-        .instanceType(InstanceType.of(InstanceClass.BURSTABLE3, InstanceSize.MICRO))
+        .instanceType(InstanceType.of(InstanceClass.BURSTABLE3, InstanceSize.MEDIUM))
+        .desiredCapacity(1)
+        .maxCapacity(1)
+        .minCapacity(1)
         .vpc(vpc)
         .machineImage(EcsOptimizedImage.amazonLinux2())
-        .vpc(vpc)
+        .keyName("sonar-key")
+        .userData(userData)
         .build()
     )
-    asg.addUserData("""
-      echo vm.max_map_count=262144 >> /etc/sysctl.conf
-      sysctl -w vm.max_map_count=262144
-    """.trimIndent())
+
     ecsCluster.addAutoScalingGroup(asg)
 
     // ECR
@@ -108,7 +110,7 @@ class SonarQubeStack @JvmOverloads constructor(app: App, id: String, props: Stac
         ContainerDefinitionOptions.builder()
             .image(containerImage)
             .cpu(256)
-            .memoryLimitMiB(1024)
+            .memoryLimitMiB(2048)
             .environment(mutableMapOf(
                 "SONAR_JDBC_URL" to sonarDbUrl,
                 "SONAR_JDBC_USERNAME" to "sonar",
@@ -119,7 +121,7 @@ class SonarQubeStack @JvmOverloads constructor(app: App, id: String, props: Stac
     )
     appContainer.addPortMappings(PortMapping.builder()
         .containerPort(9000)
-        .hostPort(9000)
+        .hostPort(80)
         .build()
     )
     // MEMO:
