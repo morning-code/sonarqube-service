@@ -147,13 +147,18 @@ class SonarQubeStack @JvmOverloads constructor(app: App, id: String, props: Stac
     userData.addCommands(
         "echo 'Adding User Commands...'",
         "echo vm.max_map_count=262144 >> /etc/sysctl.conf",
-        "sysctl -w vm.max_map_count=262144"
+        "sysctl -w vm.max_map_count=262144",
+        "echo installing Amazon Inspector Agent...",
+        "curl -O https://d1wk0tztpsntt1.cloudfront.net/linux/latest/install",
+        "sudo bash install",
+        "echo 'finish!!'"
     )
 
     // EC2 - AutoScalingGroup
     val asg = AutoScalingGroup(this, "auto-scaling-g", AutoScalingGroupProps.builder()
         .instanceType(InstanceType.of(InstanceClass.BURSTABLE3, InstanceSize.MEDIUM))
-        .desiredCapacity(1)
+        // 意味ないけど。。。料金高いときにインスタンスをシャットダウンできるよう
+        .desiredCapacity(0)
         .maxCapacity(1)
         .minCapacity(0)
         .vpc(vpc)
@@ -166,7 +171,7 @@ class SonarQubeStack @JvmOverloads constructor(app: App, id: String, props: Stac
 
     ecsCluster.addAutoScalingGroup(asg)
 
-    // ECR
+    // Container
     val containerImage = ContainerImage.fromRegistry("sonarqube:8.2-community")
 
     // TaskDefinition
